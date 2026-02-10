@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # CockroachDB
+  cockroachdb:
+    image: cockroachdb/cockroach:latest
+    container_name: stockdb
+    ports:
+      - "26257:26257"  # Puerto SQL
+      - "8080:8080"    # Puerto Admin UI
+    command: start-single-node --insecure
+    volumes:
+      - cockroach-data:/cockroach/cockroach-data
+    networks:
+      - stock-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API (descomentarás esto cuando esté listo)
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: stock-api
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - DB_HOST=cockroachdb
+  #     - DB_PORT=26257
+  #     - DB_USER=root
+  #     - DB_PASSWORD=
+  #     - DB_NAME=stockdb
+  #     - DB_SSLMODE=disable
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     cockroachdb:
+  #       condition: service_healthy
+  #   networks:
+  #     - stock-network
+  #   restart: unless-stopped
+
+  # Frontend (descomentarás esto cuando esté listo)
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: stock-ui
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - VITE_API_URL=http://localhost:8080
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - stock-network
+  #   restart: unless-stopped
+
+volumes:
+  cockroach-data:
+    driver: local
+
+networks:
+  stock-network:
+    driver: bridge

@@ -1,0 +1,75 @@
+# Archivos de entorno con credenciales
+.env
+*.env
+!.env.example
+
+# Binarios de Golang
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+backend/bin/
+backend/tmp/
+
+# Directorios de dependencias
+vendor/
+node_modules/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Base de datos local
+*.db
+*.sqlite
+*.sqlite3
+cockroach-data/
+
+# Build outputs
+dist/
+build/
+*.zip
+*.tar.gz
+
+# Testing
+coverage.txt
+coverage.html
+*.test
+.testCoverage/
+
+# Frontend
+frontend/dist/
+frontend/.nuxt/
+frontend/.output/
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Temporales
+tmp/
+temp/
+*.tmp
+
+# Archivos de certificados (si los usas localmente)
+*.pem
+*.key
+*.crt
+*.cert
