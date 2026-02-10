@@ -30,11 +30,11 @@ Invoke-WebRequest -Uri http://localhost:8080/health
 
 | Documento | Descripción | Estado |
 |-----------|-------------|--------|
-| **[BACKEND_COMPLETADO.md](BACKEND_COMPLETADO.md)** | ⭐ Resumen completo del backend implementado | ✅ |
+| **[BACKEND_COMPLETADO.md](Documentación\BACKEND_COMPLETADO.md)** | ⭐ Resumen completo del backend implementado | ✅ |
 | **[backend/README.md](backend/README.md)** | Guía de uso y testing del backend | ✅ |
-| **[GETTING_STARTED.md](GETTING_STARTED.md)** | Guía paso a paso desde cero | ✅ |
-| **[POSTMAN_GUIDE.md](POSTMAN_GUIDE.md)** | Testing con Postman | ✅ |
-| **[PLAN_DE_ACTIVIDADES.md](PLAN_DE_ACTIVIDADES.md)** | Plan de desarrollo completo | ✅ |
+| **[GETTING_STARTED.md](Documentación\GETTING_STARTED.md)** | Guía paso a paso desde cero | ✅ |
+| **[POSTMAN_GUIDE.md](Documentación\POSTMAN_GUIDE.md)** | Testing con Postman | ✅ |
+| **[PLAN_DE_ACTIVIDADES.md](Documentación\PLAN_DE_ACTIVIDADES.md)** | Plan de desarrollo completo | ✅ |
 
 ## 📊 Estructura del Proyecto
 
