@@ -19,6 +19,7 @@ type Config struct {
 	DBUser     string
 	DBPassword string
 	DBName     string
+	DBSchema   string
 	DBSSLMode  string
 
 	// Server
@@ -31,9 +32,11 @@ type Config struct {
 }
 
 func Load() *Config {
-	// Cargar .env
+	// Cargar .env desde la raíz del proyecto
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables")
+		log.Println("⚠️  No .env file found, using environment variables")
+	} else {
+		log.Println("✅ Loaded .env from current directory")
 	}
 
 	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "26257"))
@@ -47,6 +50,7 @@ func Load() *Config {
 		DBUser:           getEnv("DB_USER", "root"),
 		DBPassword:       getEnv("DB_PASSWORD", ""),
 		DBName:           getEnv("DB_NAME", "stockdb"),
+		DBSchema:         getEnv("DB_SCHEMA", "public"),
 		DBSSLMode:        getEnv("DB_SSLMODE", "disable"),
 		APIPort:          getEnv("API_PORT", "8080"),
 		APIHost:          getEnv("API_HOST", "localhost"),

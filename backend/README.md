@@ -48,6 +48,41 @@
    - CORS habilitado para frontend
    - Permite todas las operaciones
 
+9. ✅ **Documentación Swagger/OpenAPI** (`docs/`)
+   - Swagger UI interactivo en `/swagger/index.html`
+   - Especificación OpenAPI completa
+   - Pruebas de API desde el navegador
+   - 📚 Ver [SWAGGER_GUIDE.md](SWAGGER_GUIDE.md) para más detalles
+
+---
+
+## 📚 Documentación Interactiva con Swagger UI
+
+**¡Prueba la API directamente desde tu navegador!**
+
+Una vez que el servidor esté corriendo, accede a:
+
+```
+http://localhost:8080/swagger/index.html
+```
+
+### ¿Qué es Swagger UI?
+
+Swagger UI te permite:
+- 📖 **Ver todos los endpoints** con descripciones detalladas
+- 🧪 **Probar la API** directamente desde el navegador (sin Postman)
+- 📝 **Ver esquemas de datos** (modelos de request/response)
+- 💡 **Ver ejemplos** de uso para cada endpoint
+
+### Ventajas de usar Swagger
+
+1. **Documentación siempre actualizada** - Se genera automáticamente del código
+2. **Pruebas rápidas** - No necesitas Postman para probar endpoints
+3. **Fácil de compartir** - Solo envía la URL
+4. **Profesional** - Demuestra buenas prácticas de desarrollo
+
+📚 **Guía completa**: Lee [SWAGGER_GUIDE.md](docs\SWAGGER_GUIDE.md) para aprender a usar Swagger UI
+
 ---
 
 ## 🎯 Endpoints Disponibles
@@ -275,19 +310,52 @@ GET http://localhost:8080/api/v1/metadata
 
 ## 🧪 Guía de Pruebas Completa
 
-### Paso 1: Iniciar el Servidor
+## 🧱 Migraciones SQL (CLI)
+
+### Instalar la CLI
 
 ```powershell
-cd backend
-go run cmd/api/main.go
+go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+migrate -version
 ```
 
+### Generar una nueva migración
+
+Desde `backend/`:
+
+```powershell
+migrate create -ext sql -dir migrations -seq add_portfolios_table
+```
+
+Se crearán dos archivos:
+
+- `migrations/000X_add_portfolios_table.up.sql`
+- `migrations/000X_add_portfolios_table.down.sql`
+
+### Ejecutar migraciones en este proyecto
+
+```powershell
+go run ./cmd/migrate/main.go up
+go run ./cmd/migrate/main.go version
+go run ./cmd/migrate/main.go steps -1
+```
+
+> El esquema se configura desde `.env` con `DB_SCHEMA`.
+
+---
+
+### Paso 1: Iniciar el Servidor
+ 
+```powershell
+cd backend
+go run ./cmd/migrate up
+go run cmd/api/main.go
+```
+ 
 **Verás:**
 ```
 ✅ Configuration loaded
 ✅ Database connection established
-🔄 Running database migrations...
-✅ Database migrations completed
 ✅ Database connected
 ✅ Services initialized
 🚀 Server starting on http://localhost:8080

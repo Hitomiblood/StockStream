@@ -3,9 +3,9 @@ package database
 import (
 	"fmt"
 	"log"
+	"net/url"
 
 	"github.com/Hitomiblood/StockStream/internal/config"
-	"github.com/Hitomiblood/StockStream/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -16,15 +16,24 @@ var DB *gorm.DB
 // Connect establece la conexión a CockroachDB y ejecuta las migraciones
 func Connect(cfg *config.Config) error {
 	// Construir DSN (Data Source Name)
-	dsn := fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		cfg.DBHost,
-		cfg.DBPort,
-		cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBName,
-		cfg.DBSSLMode,
-	)
+	userInfo := url.User(cfg.DBUser)
+	if cfg.DBPassword != "" {
+		userInfo = url.UserPassword(cfg.DBUser, cfg.DBPassword)
+	}
+
+	dbURL := &url.URL{
+		Scheme: "postgres",
+		User:   userInfo,
+		Host:   fmt.Sprintf("%s:%d", cfg.DBHost, cfg.DBPort),
+		Path:   cfg.DBName,
+	}
+
+	query := dbURL.Query()
+	query.Set("sslmode", cfg.DBSSLMode)
+	query.Set("search_path", cfg.DBSchema)
+	dbURL.RawQuery = query.Encode()
+
+	dsn := dbURL.String()
 
 	// Configurar nivel de log según configuración
 	var logLevel logger.LogLevel
@@ -45,23 +54,6 @@ func Connect(cfg *config.Config) error {
 
 	log.Println("✅ Database connection established")
 
-	// Ejecutar migraciones automáticas
-	if err := AutoMigrate(); err != nil {
-		return fmt.Errorf("failed to migrate database: %w", err)
-	}
-
-	return nil
-}
-
-// AutoMigrate ejecuta las migraciones automáticas de GORM
-func AutoMigrate() error {
-	log.Println("🔄 Running database migrations...")
-
-	if err := DB.AutoMigrate(&models.Stock{}); err != nil {
-		return err
-	}
-
-	log.Println("✅ Database migrations completed")
 	return nil
 }
 

@@ -3,22 +3,22 @@ package services
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Hitomiblood/StockStream/internal/database"
 	"github.com/Hitomiblood/StockStream/internal/models"
-	"gorm.io/gorm"
+	"github.com/Hitomiblood/StockStream/internal/repositories"
 )
 
 type StockService struct {
-	db        *gorm.DB
+	repo      repositories.StockRepository
 	apiClient *APIClient
 }
 
 // NewStockService crea una nueva instancia del servicio de stocks
-func NewStockService(apiClient *APIClient) *StockService {
+func NewStockService(apiClient *APIClient, repo repositories.StockRepository) *StockService {
 	return &StockService{
-		db:        database.GetDB(),
+		repo:      repo,
 		apiClient: apiClient,
 	}
 }
@@ -40,21 +40,25 @@ func (s *StockService) SyncStocksFromAPI() (int, int, error) {
 	// Procesar cada stock
 	for _, stock := range stocks {
 		// Verificar si ya existe (por ticker y time)
-		var existing models.Stock
-		result := s.db.Where("ticker = ? AND time = ?", stock.Ticker, stock.Time).First(&existing)
+		existing, err := s.repo.GetByTickerAndTime(stock.Ticker, stock.Time)
+		if err != nil && err != repositories.ErrNotFound {
+			log.Printf("⚠️  Error checking existing stock %s: %v", stock.Ticker, err)
+			continue
+		}
 
-		if result.Error == gorm.ErrRecordNotFound {
+		if err == repositories.ErrNotFound {
 			// No existe, crear nuevo
-			if err := s.db.Create(&stock).Error; err != nil {
+			if err := s.repo.Create(&stock); err != nil {
 				log.Printf("⚠️  Error creating stock %s: %v", stock.Ticker, err)
 				continue
 			}
+			log.Printf("🆕 Created new stock: ID=%d, Ticker=%s", stock.ID, stock.Ticker)
 			totalNew++
-		} else if result.Error == nil {
+		} else if existing != nil {
 			// Ya existe, actualizar si hay cambios
-			if s.hasChanges(&existing, &stock) {
+			if s.hasChanges(existing, &stock) {
 				stock.ID = existing.ID // Mantener el ID
-				if err := s.db.Save(&stock).Error; err != nil {
+				if err := s.repo.Save(&stock); err != nil {
 					log.Printf("⚠️  Error updating stock %s: %v", stock.Ticker, err)
 					continue
 				}
@@ -81,113 +85,58 @@ func (s *StockService) hasChanges(old, new *models.Stock) bool {
 
 // GetAllStocks obtiene todos los stocks con paginación
 func (s *StockService) GetAllStocks(limit, offset int, sortBy, order string) ([]models.Stock, int64, error) {
-	var stocks []models.Stock
-	var total int64
-
 	// Contar total
-	s.db.Model(&models.Stock{}).Count(&total)
-
-	// Aplicar paginación y ordenamiento
-	query := s.db.Limit(limit).Offset(offset)
-
-	if sortBy != "" {
-		orderClause := sortBy
-		if order == "desc" {
-			orderClause += " DESC"
-		} else {
-			orderClause += " ASC"
-		}
-		query = query.Order(orderClause)
-	} else {
-		query = query.Order("time DESC") // Por defecto ordenar por fecha descendente
+	total, err := s.repo.CountAll()
+	if err != nil {
+		return nil, 0, err
 	}
 
-	if err := query.Find(&stocks).Error; err != nil {
+	desc := normalizeSortOrder(order)
+
+	stocks, err := s.repo.List(limit, offset, sortBy, desc)
+	if err != nil {
 		return nil, 0, err
 	}
 
 	return stocks, total, nil
 }
 
+func normalizeSortOrder(order string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(order))
+	return normalized != "asc"
+}
+
 // GetStockByID obtiene un stock por su ID
-func (s *StockService) GetStockByID(id uint) (*models.Stock, error) {
-	var stock models.Stock
-	if err := s.db.First(&stock, id).Error; err != nil {
-		return nil, err
-	}
-	return &stock, nil
+func (s *StockService) GetStockByID(id uint64) (*models.Stock, error) {
+	return s.repo.FindByID(id)
 }
 
 // GetStocksByTicker obtiene el historial de un stock por su ticker
 func (s *StockService) GetStocksByTicker(ticker string) ([]models.Stock, error) {
-	var stocks []models.Stock
-	if err := s.db.Where("ticker = ?", ticker).Order("time DESC").Find(&stocks).Error; err != nil {
-		return nil, err
-	}
-	return stocks, nil
+	return s.repo.FindByTicker(ticker)
 }
 
 // SearchStocks busca stocks por ticker o nombre de compañía
 func (s *StockService) SearchStocks(query string, limit int) ([]models.Stock, error) {
-	var stocks []models.Stock
-	searchPattern := "%" + query + "%"
-
-	if err := s.db.Where("ticker ILIKE ? OR company ILIKE ?", searchPattern, searchPattern).
-		Limit(limit).
-		Order("time DESC").
-		Find(&stocks).Error; err != nil {
-		return nil, err
-	}
-
-	return stocks, nil
+	return s.repo.Search(query, limit)
 }
 
 // FilterStocks filtra stocks por acción y/o rating
 func (s *StockService) FilterStocks(action, rating string, limit, offset int) ([]models.Stock, int64, error) {
-	var stocks []models.Stock
-	var total int64
-
-	query := s.db.Model(&models.Stock{})
-
-	if action != "" {
-		query = query.Where("action = ?", action)
-	}
-	if rating != "" {
-		query = query.Where("rating_to = ?", rating)
-	}
-
-	query.Count(&total)
-
-	if err := query.Limit(limit).Offset(offset).Order("time DESC").Find(&stocks).Error; err != nil {
-		return nil, 0, err
-	}
-
-	return stocks, total, nil
+	return s.repo.Filter(action, rating, limit, offset)
 }
 
 // GetUniqueActions obtiene todas las acciones únicas disponibles
 func (s *StockService) GetUniqueActions() ([]string, error) {
-	var actions []string
-	if err := s.db.Model(&models.Stock{}).Distinct("action").Pluck("action", &actions).Error; err != nil {
-		return nil, err
-	}
-	return actions, nil
+	return s.repo.DistinctActions()
 }
 
 // GetUniqueRatings obtiene todos los ratings únicos disponibles
 func (s *StockService) GetUniqueRatings() ([]string, error) {
-	var ratings []string
-	if err := s.db.Model(&models.Stock{}).Distinct("rating_to").Pluck("rating_to", &ratings).Error; err != nil {
-		return nil, err
-	}
-	return ratings, nil
+	return s.repo.DistinctRatings()
 }
 
 // GetLatestStocks obtiene los últimos N stocks añadidos
 func (s *StockService) GetLatestStocks(limit int) ([]models.Stock, error) {
-	var stocks []models.Stock
-	if err := s.db.Order("created_at DESC").Limit(limit).Find(&stocks).Error; err != nil {
-		return nil, err
-	}
-	return stocks, nil
+	return s.repo.Latest(limit)
 }

@@ -1,0 +1,350 @@
+definitions:
+  models.ConfidenceLevel:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - ConfidenceLow
+    - ConfidenceMedium
+    - ConfidenceHigh
+  models.Stock:
+    properties:
+      action:
+        type: string
+      brokerage:
+        type: string
+      company:
+        type: string
+      created_at:
+        type: string
+      id:
+        example: "0"
+        type: string
+      rating_from:
+        type: string
+      rating_to:
+        type: string
+      target_from:
+        type: string
+      target_to:
+        type: string
+      ticker:
+        type: string
+      time:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.StockRecommendation:
+    properties:
+      confidence:
+        $ref: '#/definitions/models.ConfidenceLevel'
+      reason:
+        type: string
+      score:
+        type: number
+      stock:
+        $ref: '#/definitions/models.Stock'
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/metadata:
+    get:
+      consumes:
+      - application/json
+      description: Get unique values for actions and ratings available in the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Available actions and ratings
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to fetch metadata
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get metadata
+      tags:
+      - metadata
+  /api/v1/recommendations:
+    get:
+      consumes:
+      - application/json
+      description: Get intelligent stock recommendations based on multiple criteria
+      parameters:
+      - description: 'Number of recommendations (default: 10, max: 50)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of recommendations
+          schema:
+            items:
+              $ref: '#/definitions/models.StockRecommendation'
+            type: array
+        "500":
+          description: Failed to generate recommendations
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get investment recommendations
+      tags:
+      - recommendations
+  /api/v1/stocks:
+    get:
+      consumes:
+      - application/json
+      description: Get all stocks with pagination, sorting and filtering
+      parameters:
+      - description: 'Number of results (default: 50, max: 200)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Offset for pagination (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      - description: 'Field to sort by (default: time)'
+        in: query
+        name: sort
+        type: string
+      - description: 'Sort order: asc or desc (default: desc)'
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of stocks
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List stocks
+      tags:
+      - stocks
+  /api/v1/stocks/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information of a specific stock
+      parameters:
+      - description: Stock ID (as string due to large ID values)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Stock'
+        "400":
+          description: Invalid ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Stock not found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get stock by ID
+      tags:
+      - stocks
+  /api/v1/stocks/fetch:
+    post:
+      consumes:
+      - application/json
+      description: Fetch and synchronize all stocks from the external API to the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sync completed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to sync stocks
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Sync stocks from external API
+      tags:
+      - stocks
+  /api/v1/stocks/filter:
+    get:
+      consumes:
+      - application/json
+      description: Filter stocks by action, rating or both criteria
+      parameters:
+      - description: Filter by action (e.g., Upgrade, Downgrade, Initiated, Maintains)
+        in: query
+        name: action
+        type: string
+      - description: Filter by rating (e.g., Buy, Sell, Hold)
+        in: query
+        name: rating
+        type: string
+      - description: 'Number of results (default: 50, max: 200)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Offset for pagination (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Filtered results
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Missing filter parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Filter stocks
+      tags:
+      - stocks
+  /api/v1/stocks/latest:
+    get:
+      consumes:
+      - application/json
+      description: Get the most recent stock updates ordered by time
+      parameters:
+      - description: 'Number of results (default: 20, max: 100)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Latest stocks
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get latest stocks
+      tags:
+      - stocks
+  /api/v1/stocks/search:
+    get:
+      consumes:
+      - application/json
+      description: Search stocks by ticker or company name
+      parameters:
+      - description: Search query (ticker or company name)
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: 'Number of results (default: 50, max: 200)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Search results
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Missing search query
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Search stocks
+      tags:
+      - stocks
+  /api/v1/stocks/ticker/{ticker}:
+    get:
+      consumes:
+      - application/json
+      description: Get all historical records for a specific stock ticker
+      parameters:
+      - description: Stock ticker symbol
+        in: path
+        name: ticker
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Stock history for ticker
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ticker
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: No stocks found for ticker
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get stocks by ticker
+      tags:
+      - stocks
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Check if the API is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: API is healthy
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - health
+swagger: "2.0"

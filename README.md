@@ -11,30 +11,67 @@ Sistema completo de análisis de acciones con backend en Golang, frontend en Vue
 ## 🚀 Quick Start
 
 ### Iniciar el Backend
-
+ 
 ```powershell
 # 1. Iniciar CockroachDB
 docker start cockroachdb
 # O si no existe:
 docker-compose up -d cockroachdb
-
-# 2. Iniciar servidor backend
+ 
+# 2. Ejecutar migraciones
 cd backend
-go run cmd/api/main.go
+go run ./cmd/migrate up
 
-# 3. Probar la API
+# 3. Iniciar servidor backend
+go run cmd/api/main.go
+ 
+# 4. Probar la API
 Invoke-WebRequest -Uri http://localhost:8080/health
 ```
+
+### 🧱 Migraciones SQL (CLI)
+
+```powershell
+cd backend
+go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+migrate -version
+
+# Crear nueva migración
+migrate create -ext sql -dir migrations -seq add_portfolios_table
+
+# Aplicar migraciones con el runner del proyecto
+go run ./cmd/migrate/main.go up
+```
+
+> Configura el esquema en `.env` con `DB_SCHEMA` (ejemplo: `public`).
+
+### 📚 Swagger UI - Documentación Interactiva
+
+**¡Prueba la API desde tu navegador sin necesidad de Postman!**
+
+Una vez iniciado el servidor, accede a:
+```
+http://localhost:8080/swagger/index.html
+```
+
+Swagger UI te permite:
+- 📖 Ver todos los endpoints con descripciones detalladas
+- 🧪 Ejecutar peticiones directamente desde el navegador
+- 📝 Ver modelos de datos y ejemplos
+- 💡 Aprender cómo usar la API de forma interactiva
+
+📚 **Guía completa**: [SWAGGER_GUIDE.md](backend/docs/SWAGGER_GUIDE.md)
 
 ### 📚 Documentación Completa
 
 | Documento | Descripción | Estado |
 |-----------|-------------|--------|
-| **[BACKEND_COMPLETADO.md](Documentación\BACKEND_COMPLETADO.md)** | ⭐ Resumen completo del backend implementado | ✅ |
+| **[BACKEND_COMPLETADO.md](backend\docs\BACKEND_COMPLETADO.md)** | ⭐ Resumen completo del backend implementado | ✅ |
 | **[backend/README.md](backend/README.md)** | Guía de uso y testing del backend | ✅ |
-| **[GETTING_STARTED.md](Documentación\GETTING_STARTED.md)** | Guía paso a paso desde cero | ✅ |
-| **[POSTMAN_GUIDE.md](Documentación\POSTMAN_GUIDE.md)** | Testing con Postman | ✅ |
-| **[PLAN_DE_ACTIVIDADES.md](Documentación\PLAN_DE_ACTIVIDADES.md)** | Plan de desarrollo completo | ✅ |
+| **[backend/SWAGGER_GUIDE.md](backend\docs\SWAGGER_GUIDE.md)** | 📚 Documentación interactiva con Swagger UI | ✅ |
+| **[GETTING_STARTED.md](backend\docs\GETTING_STARTED.md)** | Guía paso a paso desde cero | ✅ |
+| **[POSTMAN_GUIDE.md](backend\docs\POSTMAN_GUIDE.md)** | Testing con Postman | ✅ |
+| **[PLAN_DE_ACTIVIDADES.md](backend\docs\PLAN_DE_ACTIVIDADES.md)** | Plan de desarrollo completo | ✅ |
 
 ## 📊 Estructura del Proyecto
 

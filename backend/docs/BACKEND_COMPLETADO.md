@@ -23,9 +23,14 @@ backend/
 │   │   └── stock_handlers.go        ✅ 10 endpoints HTTP
 │   └── middleware/
 │       └── cors.go                   ✅ CORS habilitado
+├── docs/                              ✅ Swagger/OpenAPI documentation
+│   ├── docs.go                       ✅ Documentación generada
+│   ├── swagger.json                  ✅ Especificación OpenAPI
+│   └── swagger.yaml                  ✅ Especificación YAML
 ├── .env                               ✅ Variables de entorno
 ├── go.mod                             ✅ Dependencias
-└── README.md                          ✅ Documentación completa
+├── README.md                          ✅ Documentación completa
+└── SWAGGER_GUIDE.md                   ✅ Guía de Swagger UI
 ```
 
 ---
@@ -44,6 +49,43 @@ backend/
 | 8 | POST | `/api/v1/stocks/fetch` | Sincronizar desde API externa | ✅ |
 | 9 | GET | `/api/v1/recommendations` | Recomendaciones de inversión | ✅ |
 | 10 | GET | `/api/v1/metadata` | Metadata (filtros disponibles) | ✅ |
+
+---
+
+## 📚 Documentación Interactiva con Swagger UI
+
+**¡Nueva característica implementada!**
+
+La API ahora incluye documentación interactiva completa con Swagger/OpenAPI:
+
+🌐 **Acceso**: `http://localhost:8080/swagger/index.html`
+
+### Características de Swagger UI
+
+✅ **Documentación automática** - Generada directamente del código
+✅ **Testing interactivo** - Prueba endpoints sin Postman
+✅ **Modelos de datos** - Ve estructuras de request/response
+✅ **Ejemplos incluidos** - Aprende cómo usar cada endpoint
+✅ **Especificación OpenAPI** - Compatible con cualquier herramienta
+
+### Archivos Generados
+
+```
+backend/docs/
+├── docs.go          - Código Go con documentación embebida
+├── swagger.json     - Especificación OpenAPI en JSON
+└── swagger.yaml     - Especificación OpenAPI en YAML
+```
+
+### Dependencias Swagger
+
+```go
+github.com/swaggo/swag v1.16.6
+github.com/swaggo/gin-swagger v1.6.1
+github.com/swaggo/files v1.0.1
+```
+
+📚 **Guía completa**: Ver [backend/SWAGGER_GUIDE.md](../backend/SWAGGER_GUIDE.md)
 
 ---
 

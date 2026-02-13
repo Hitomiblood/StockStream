@@ -2,13 +2,19 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/Hitomiblood/StockStream/internal/config"
 	"github.com/Hitomiblood/StockStream/internal/database"
 	"github.com/Hitomiblood/StockStream/internal/handlers"
 	"github.com/Hitomiblood/StockStream/internal/middleware"
+	"github.com/Hitomiblood/StockStream/internal/repositories/gormrepo"
 	"github.com/Hitomiblood/StockStream/internal/services"
 	"github.com/gin-gonic/gin"
+
+	_ "github.com/Hitomiblood/StockStream/docs" // docs generados por swag init
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -24,8 +30,9 @@ func main() {
 
 	// Crear servicios
 	apiClient := services.NewAPIClient(cfg)
-	stockService := services.NewStockService(apiClient)
-	recommendationService := services.NewRecommendationService()
+	stockRepo := gormrepo.NewStockRepository(database.GetDB())
+	stockService := services.NewStockService(apiClient, stockRepo)
+	recommendationService := services.NewRecommendationService(stockRepo)
 	log.Println("✅ Services initialized")
 
 	// Crear handlers
@@ -41,6 +48,14 @@ func main() {
 
 	// Aplicar middleware
 	r.Use(middleware.CORS())
+
+	// Redirigir la raíz a Swagger
+	r.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusFound, "/swagger/index.html")
+	})
+
+	// Swagger documentation
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Rutas públicas
 	r.GET("/health", stockHandler.HealthCheck)
@@ -65,23 +80,11 @@ func main() {
 	}
 
 	// Información de rutas disponibles
-	log.Println("\n📋 Available endpoints:")
-	log.Println("   GET  /health - Health check")
-	log.Println("   GET  /api/v1/stocks - List all stocks")
-	log.Println("   GET  /api/v1/stocks/latest - Get latest stocks")
-	log.Println("   GET  /api/v1/stocks/search?q=query - Search stocks")
-	log.Println("   GET  /api/v1/stocks/filter?action=X&rating=Y - Filter stocks")
-	log.Println("   GET  /api/v1/stocks/ticker/:ticker - Get stock history by ticker")
-	log.Println("   GET  /api/v1/stocks/:id - Get stock by ID")
-	log.Println("   POST /api/v1/stocks/fetch - Fetch from external API")
-	log.Println("   GET  /api/v1/recommendations - Get investment recommendations")
-	log.Println("   GET  /api/v1/metadata - Get available actions and ratings")
-
-	// Iniciar servidor
 	addr := cfg.APIHost + ":" + cfg.APIPort
 	log.Printf("\n🚀 Server starting on http://%s", addr)
-	log.Printf("📚 Test the API: curl http://%s/health\n", addr)
-	
+	log.Printf("📚 Swagger UI: http://%s/swagger/index.html", addr)
+	log.Printf("🧪 Test the API: curl http://%s/health\n", addr)
+
 	if err := r.Run(addr); err != nil {
 		log.Fatal(err)
 	}
