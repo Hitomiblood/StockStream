@@ -13,9 +13,7 @@ import (
 
 var DB *gorm.DB
 
-// Connect establece la conexión a CockroachDB y ejecuta las migraciones
-func Connect(cfg *config.Config) error {
-	// Construir DSN (Data Source Name)
+func buildDSN(cfg *config.Config) string {
 	userInfo := url.User(cfg.DBUser)
 	if cfg.DBPassword != "" {
 		userInfo = url.UserPassword(cfg.DBUser, cfg.DBPassword)
@@ -33,15 +31,22 @@ func Connect(cfg *config.Config) error {
 	query.Set("search_path", cfg.DBSchema)
 	dbURL.RawQuery = query.Encode()
 
-	dsn := dbURL.String()
+	return dbURL.String()
+}
+
+func resolveLogLevel(level string) logger.LogLevel {
+	if level == "debug" {
+		return logger.Info
+	}
+	return logger.Warn
+}
+
+// Connect establece la conexión a CockroachDB y ejecuta las migraciones
+func Connect(cfg *config.Config) error {
+	dsn := buildDSN(cfg)
 
 	// Configurar nivel de log según configuración
-	var logLevel logger.LogLevel
-	if cfg.LogLevel == "debug" {
-		logLevel = logger.Info
-	} else {
-		logLevel = logger.Warn
-	}
+	logLevel := resolveLogLevel(cfg.LogLevel)
 
 	// Conectar a la base de datos
 	var err error
@@ -64,6 +69,9 @@ func GetDB() *gorm.DB {
 
 // Close cierra la conexión a la base de datos
 func Close() error {
+	if DB == nil {
+		return nil
+	}
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return err

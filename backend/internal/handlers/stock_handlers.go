@@ -6,13 +6,31 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Hitomiblood/StockStream/internal/models"
 	"github.com/Hitomiblood/StockStream/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
+type stockService interface {
+	GetAllStocks(limit, offset int, sortBy, order string) ([]models.Stock, int64, error)
+	GetStockByID(id uint64) (*models.Stock, error)
+	GetStocksByTicker(ticker string) ([]models.Stock, error)
+	SearchStocks(query string, limit int) ([]models.Stock, error)
+	FilterStocks(action, rating string, limit, offset int) ([]models.Stock, int64, error)
+	SyncStocksFromAPI() (int, int, error)
+	GetUniqueActions() ([]string, error)
+	GetUniqueRatings() ([]string, error)
+	GetLatestStocks(limit int) ([]models.Stock, error)
+}
+
+type recommendationService interface {
+	GetRecommendations(limit int) ([]models.StockRecommendation, error)
+}
+
 type StockHandler struct {
-	stockService          *services.StockService
-	recommendationService *services.RecommendationService
+	stockService          stockService
+	recommendationService recommendationService
+	now                   func() time.Time
 }
 
 var allowedSortQueryFields = map[string]struct{}{
@@ -35,6 +53,15 @@ func NewStockHandler(stockService *services.StockService, recService *services.R
 	return &StockHandler{
 		stockService:          stockService,
 		recommendationService: recService,
+		now:                   time.Now,
+	}
+}
+
+func NewStockHandlerWithServices(stockService stockService, recService recommendationService) *StockHandler {
+	return &StockHandler{
+		stockService:          stockService,
+		recommendationService: recService,
+		now:                   time.Now,
 	}
 }
 
@@ -269,7 +296,7 @@ func (h *StockHandler) FilterStocks(c *gin.Context) {
 // @Failure      500  {object}  map[string]interface{}  "Failed to sync stocks"
 // @Router       /api/v1/stocks/fetch [post]
 func (h *StockHandler) FetchStocks(c *gin.Context) {
-	startTime := time.Now()
+	startTime := h.now()
 
 	totalNew, totalUpdated, err := h.stockService.SyncStocksFromAPI()
 	if err != nil {
@@ -279,7 +306,7 @@ func (h *StockHandler) FetchStocks(c *gin.Context) {
 		return
 	}
 
-	duration := time.Since(startTime)
+	duration := h.now().Sub(startTime)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":       "Data fetched successfully",
@@ -319,7 +346,7 @@ func (h *StockHandler) GetRecommendations(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"recommendations": recommendations,
-		"generated_at":    time.Now(),
+		"generated_at":    h.now(),
 		"count":           len(recommendations),
 		"criteria": gin.H{
 			"target_change_weight":   0.4,
@@ -397,7 +424,7 @@ func (h *StockHandler) HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":    "ok",
 		"message":   "Stock Analysis System API",
-		"timestamp": time.Now(),
+		"timestamp": h.now(),
 		"version":   "1.0.0",
 	})
 }

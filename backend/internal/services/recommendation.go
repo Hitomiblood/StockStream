@@ -16,6 +16,7 @@ import (
 
 type RecommendationService struct {
 	repo repositories.StockRepository
+	now  func() time.Time
 }
 
 type featureVector struct {
@@ -114,6 +115,7 @@ var actionSignals = []struct {
 func NewRecommendationService(repo repositories.StockRepository) *RecommendationService {
 	return &RecommendationService{
 		repo: repo,
+		now:  time.Now,
 	}
 }
 
@@ -124,7 +126,7 @@ func (rs *RecommendationService) GetRecommendations(limit int) ([]models.StockRe
 	var stocks []models.Stock
 
 	// Buscar primero en la ventana reciente y luego ampliar si no hay datos.
-	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+	thirtyDaysAgo := rs.now().AddDate(0, 0, -30)
 	var err error
 	stocks, err = rs.repo.FindSince(thirtyDaysAgo)
 	if err != nil {
@@ -132,7 +134,7 @@ func (rs *RecommendationService) GetRecommendations(limit int) ([]models.StockRe
 	}
 
 	if len(stocks) == 0 {
-		ninetyDaysAgo := time.Now().AddDate(0, 0, -90)
+		ninetyDaysAgo := rs.now().AddDate(0, 0, -90)
 		stocks, err = rs.repo.FindSince(ninetyDaysAgo)
 		if err != nil {
 			return nil, err
@@ -416,7 +418,7 @@ func (rs *RecommendationService) evaluateRecentActivity(stock models.Stock) floa
 		return -40
 	}
 
-	daysSinceUpdate := time.Since(stock.Time).Hours() / 24
+	daysSinceUpdate := rs.now().Sub(stock.Time).Hours() / 24
 
 	if daysSinceUpdate < 3 {
 		return 90

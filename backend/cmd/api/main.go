@@ -38,46 +38,7 @@ func main() {
 	// Crear handlers
 	stockHandler := handlers.NewStockHandler(stockService, recommendationService)
 
-	// Configurar Gin según el nivel de log
-	if cfg.LogLevel != "debug" {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	// Crear router
-	r := gin.Default()
-
-	// Aplicar middleware
-	r.Use(middleware.CORS())
-
-	// Redirigir la raíz a Swagger
-	r.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusFound, "/swagger/index.html")
-	})
-
-	// Swagger documentation
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	// Rutas públicas
-	r.GET("/health", stockHandler.HealthCheck)
-
-	// Grupo de rutas API v1
-	v1 := r.Group("/api/v1")
-	{
-		// Stocks
-		v1.GET("/stocks", stockHandler.GetAllStocks)
-		v1.GET("/stocks/latest", stockHandler.GetLatestStocks)
-		v1.GET("/stocks/search", stockHandler.SearchStocks)
-		v1.GET("/stocks/filter", stockHandler.FilterStocks)
-		v1.GET("/stocks/ticker/:ticker", stockHandler.GetStocksByTicker)
-		v1.GET("/stocks/:id", stockHandler.GetStockByID)
-		v1.POST("/stocks/fetch", stockHandler.FetchStocks)
-
-		// Recomendaciones
-		v1.GET("/recommendations", stockHandler.GetRecommendations)
-
-		// Metadata
-		v1.GET("/metadata", stockHandler.GetMetadata)
-	}
+	r := setupRouter(cfg, stockHandler)
 
 	// Información de rutas disponibles
 	addr := cfg.APIHost + ":" + cfg.APIPort
@@ -88,4 +49,35 @@ func main() {
 	if err := r.Run(addr); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func setupRouter(cfg *config.Config, stockHandler *handlers.StockHandler) *gin.Engine {
+	if cfg.LogLevel != "debug" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	r := gin.Default()
+	r.Use(middleware.CORS())
+
+	r.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusFound, "/swagger/index.html")
+	})
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.GET("/health", stockHandler.HealthCheck)
+
+	v1 := r.Group("/api/v1")
+	{
+		v1.GET("/stocks", stockHandler.GetAllStocks)
+		v1.GET("/stocks/latest", stockHandler.GetLatestStocks)
+		v1.GET("/stocks/search", stockHandler.SearchStocks)
+		v1.GET("/stocks/filter", stockHandler.FilterStocks)
+		v1.GET("/stocks/ticker/:ticker", stockHandler.GetStocksByTicker)
+		v1.GET("/stocks/:id", stockHandler.GetStockByID)
+		v1.POST("/stocks/fetch", stockHandler.FetchStocks)
+		v1.GET("/recommendations", stockHandler.GetRecommendations)
+		v1.GET("/metadata", stockHandler.GetMetadata)
+	}
+
+	return r
 }

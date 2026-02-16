@@ -12,11 +12,15 @@ import (
 
 type StockService struct {
 	repo      repositories.StockRepository
-	apiClient *APIClient
+	apiClient StockFetcher
+}
+
+type StockFetcher interface {
+	FetchAllStocks() ([]models.Stock, error)
 }
 
 // NewStockService crea una nueva instancia del servicio de stocks
-func NewStockService(apiClient *APIClient, repo repositories.StockRepository) *StockService {
+func NewStockService(apiClient StockFetcher, repo repositories.StockRepository) *StockService {
 	return &StockService{
 		repo:      repo,
 		apiClient: apiClient,
