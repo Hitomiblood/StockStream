@@ -310,6 +310,16 @@ GET http://localhost:8080/api/v1/metadata
 
 ## 🧪 Guía de Pruebas Completa
 
+### Tests automatizados (Go)
+
+Desde `backend/`:
+
+```powershell
+go test ./...
+```
+
+Este comando ejecuta los tests de `cmd`, `docs`, `internal/config`, `internal/database`, `internal/handlers`, `internal/middleware`, `internal/models`, `internal/repositories/gormrepo` e `internal/services`.
+
 ## 🧱 Migraciones SQL (CLI)
 
 ### Instalar la CLI
@@ -599,13 +609,13 @@ taskkill /PID <PID> /F
 
 ## 📈 Próximos Pasos
 
-Ahora que el backend está completamente funcional:
+Estado actual del proyecto:
 
 1. ✅ **Backend completado**
-2. ⏭️ **Frontend**: Vue 3 + TypeScript + Tailwind
-3. ⏭️ **Tests**: Unitarios e integración
-4. ⏭️ **Documentación**: Swagger/OpenAPI
-5. ⏭️ **Deploy**: Dockerización completa
+2. ✅ **Frontend MVP implementado**
+3. ✅ **Tests automatizados** (backend + frontend)
+4. ✅ **Documentación**: Swagger/OpenAPI + READMEs
+5. ⏭️ **Deploy**: Dockerización/CI completa (opcional)
 
 ---
 
@@ -621,6 +631,7 @@ Ahora que el backend está completamente funcional:
 - ✅ Manejo de errores
 - ✅ Logs informativos
 - ✅ Migraciones automáticas de DB
+- ✅ Tests automatizados con `go test ./...`
 
 ---
 
@@ -632,4 +643,4 @@ Todos los componentes están implementados y probados. El sistema puede:
 - Servir los datos a través de una API REST
 - Generar recomendaciones inteligentes de inversión
 
-**¡Listo para integrar con el frontend!** 🚀
+**¡Listo para uso en MVP e integración end-to-end!** 🚀

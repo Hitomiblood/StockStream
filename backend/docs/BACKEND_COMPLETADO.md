@@ -227,6 +227,20 @@ Invoke-WebRequest -Uri "http://localhost:8080/api/v1/stocks/filter?action=target
 
 ## 🧪 Testing Realizado
 
+### Tests automatizados ejecutados
+
+```powershell
+cd backend
+go test ./...
+```
+
+Cobertura de paquetes validada en la ejecución:
+- `cmd/api`, `cmd/migrate`
+- `docs`
+- `internal/config`, `internal/database`, `internal/handlers`, `internal/middleware`, `internal/models`
+- `internal/repositories/gormrepo`
+- `internal/services`
+
 ### Tests Manuales Completados
 
 1. ✅ **Health Check**: Servidor responde correctamente
