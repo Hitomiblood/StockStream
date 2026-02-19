@@ -69,12 +69,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of recommendations",
+                        "description": "Recommendations payload",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.StockRecommendation"
-                            }
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "500": {

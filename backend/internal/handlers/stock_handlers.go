@@ -324,7 +324,7 @@ func (h *StockHandler) FetchStocks(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        limit  query  int  false  "Number of recommendations (default: 10, max: 50)"
-// @Success      200  {array}  models.StockRecommendation  "List of recommendations"
+// @Success      200  {object}  map[string]interface{}  "Recommendations payload"
 // @Failure      500  {object}  map[string]interface{}  "Failed to generate recommendations"
 // @Router       /api/v1/recommendations [get]
 func (h *StockHandler) GetRecommendations(c *gin.Context) {

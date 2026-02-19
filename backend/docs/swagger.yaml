@@ -86,11 +86,10 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of recommendations
+          description: Recommendations payload
           schema:
-            items:
-              $ref: '#/definitions/models.StockRecommendation'
-            type: array
+            additionalProperties: true
+            type: object
         "500":
           description: Failed to generate recommendations
           schema:

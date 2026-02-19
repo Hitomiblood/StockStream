@@ -5,13 +5,13 @@ Sistema completo de análisis de acciones con backend en Golang, frontend en Vue
 ## 🎉 Estado del Proyecto
 
 - ✅ **Backend**: **100% COMPLETADO Y FUNCIONAL**
-- ⏳ **Frontend**: Pendiente
+- ✅ **Frontend**: MVP implementado
 - ⏳ **Tests**: Pendiente
 
 ## 🚀 Quick Start
 
 ### Iniciar el Backend
- 
+
 ```powershell
 # 1. Iniciar CockroachDB
 docker start cockroachdb
@@ -27,6 +27,21 @@ go run cmd/api/main.go
  
 # 4. Probar la API
 Invoke-WebRequest -Uri http://localhost:8080/health
+```
+
+### Iniciar el Frontend
+
+```powershell
+cd frontend
+Copy-Item .env.example .env
+npm install
+npm run dev
+```
+
+Frontend por defecto en:
+
+```HTTP
+http://localhost:5173
 ```
 
 ### 🧱 Migraciones SQL (CLI)
@@ -68,6 +83,7 @@ Swagger UI te permite:
 |-----------|-------------|--------|
 | **[BACKEND_COMPLETADO.md](backend\docs\BACKEND_COMPLETADO.md)** | ⭐ Resumen completo del backend implementado | ✅ |
 | **[backend/README.md](backend/README.md)** | Guía de uso y testing del backend | ✅ |
+| **[frontend/README.md](frontend/README.md)** | Guía del frontend (rutas, stores y scripts) | ✅ |
 | **[backend/SWAGGER_GUIDE.md](backend\docs\SWAGGER_GUIDE.md)** | 📚 Documentación interactiva con Swagger UI | ✅ |
 | **[GETTING_STARTED.md](backend\docs\GETTING_STARTED.md)** | Guía paso a paso desde cero | ✅ |
 | **[POSTMAN_GUIDE.md](backend\docs\POSTMAN_GUIDE.md)** | Testing con Postman | ✅ |
@@ -88,7 +104,7 @@ stock-analysis-system/
 │   │   └── middleware/            ✅ CORS configurado
 │   ├── tests/                     ⏳ Pendiente
 │   └── README.md                  ✅ Documentación completa
-├── frontend/                       ⏳ Pendiente
+├── frontend/                       ✅ MVP implementado
 ├── GETTING_STARTED.md             ✅ Guía completa
 ├── POSTMAN_GUIDE.md               ✅ Testing guide
 ├── PLAN_DE_ACTIVIDADES.md         ✅ Plan de trabajo
